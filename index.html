@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제도 마스터 — 기계·기초 제도 학습도구 모음</title>
+<style>
+  :root{
+    --bg:#0b2540; --panel:#123459; --panel-light:#1c4474;
+    --text:#eaf4ff; --text-dim:#9fc1e0; --accent:#ffb454;
+    --correct:#5fd86f; --grid:rgba(234,244,255,0.06);
+    --paper:#f4efe0; --ink:#1c3247; --link:#5bc8de;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);min-height:100vh;padding:20px 14px 70px;
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
+    background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/40px 40px,
+               linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,var(--bg);}
+  .wrap{max-width:900px;margin:0 auto}
+  .eyebrow{font-size:.74rem;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  h1{font-size:1.6rem;margin:0 0 5px}
+  .subtitle{color:var(--text-dim);font-size:.94rem;margin-bottom:18px;line-height:1.6}
+  .panel{background:var(--panel);border:1px solid rgba(234,244,255,.12);border-radius:14px;padding:20px;margin-bottom:18px}
+
+  /* 진행 상황 — 도면 한 장이 완성되어 간다 */
+  .progwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .sheetbox{background:var(--paper);border-radius:12px;padding:8px;flex:1 1 300px;min-width:260px}
+  #sheetCv{display:block;width:100%;height:200px}
+  .progtext{flex:1 1 220px;min-width:200px}
+  .bignum{font-size:2.4rem;font-weight:800;color:var(--accent);line-height:1}
+  .bignum small{font-size:1rem;color:var(--text-dim);font-weight:700}
+  .progmsg{font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-top:8px}
+  .bar{height:9px;border-radius:5px;background:#0f2032;overflow:hidden;margin-top:12px;border:1px solid rgba(234,244,255,.14)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--link),var(--accent));width:0;transition:width .5s}
+
+  .rcnote{background:rgba(95,216,111,.12);border:1px solid rgba(95,216,111,.4);border-radius:10px;
+          padding:11px 14px;font-size:.87rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px}
+  .rcnote b{color:var(--correct)}
+  .hidden{display:none !important}
+
+  .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .fbtn{background:transparent;border:1px solid rgba(234,244,255,.22);color:var(--text-dim);
+        padding:10px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit}
+  .fbtn:hover{border-color:var(--accent);color:var(--text)}
+  .fbtn[aria-pressed="true"]{background:var(--accent);color:#1a1306;border-color:var(--accent)}
+
+  .stagehead{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px}
+  .stagehead h2{font-size:1.05rem;margin:0;color:var(--accent)}
+  .stagehead span{font-size:.83rem;color:var(--text-dim)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(266px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid rgba(234,244,255,.14);border-radius:13px;
+        padding:15px 16px 13px;display:flex;flex-direction:column;gap:8px;position:relative}
+  .card.done{border-color:rgba(95,216,111,.55);background:#103a4a}
+  .card .top{display:flex;align-items:flex-start;gap:9px}
+  .card .emo{font-size:1.5rem;line-height:1.1;flex:none}
+  .card .nm{font-weight:800;font-size:1rem;line-height:1.35}
+  .card .badge{display:inline-block;background:var(--panel-light);color:var(--link);border-radius:20px;
+               padding:3px 10px;font-size:.72rem;font-weight:800;letter-spacing:.03em}
+  .card .desc{font-size:.83rem;color:var(--text-dim);line-height:1.55;flex:1}
+  .card .acts{display:flex;gap:8px;align-items:center;margin-top:2px}
+  .card a.open{flex:1;text-align:center;background:var(--accent);color:#1a1306;text-decoration:none;
+               font-weight:800;font-size:.88rem;padding:11px 10px;border-radius:9px;min-height:44px;
+               display:flex;align-items:center;justify-content:center}
+  .card a.open:hover{filter:brightness(1.08)}
+  .card button.chk{flex:none;width:46px;min-height:44px;border-radius:9px;cursor:pointer;font-size:1.1rem;
+        background:transparent;border:1px solid rgba(234,244,255,.26);color:var(--text-dim);font-family:inherit}
+  .card button.chk[aria-pressed="true"]{background:var(--correct);border-color:var(--correct);color:#0a2d13}
+  .card .tag{position:absolute;top:13px;right:14px;font-size:.7rem;color:var(--text-dim)}
+
+  .foot{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+  .btn{border:none;border-radius:10px;background:transparent;border:1px solid rgba(234,244,255,.3);
+       color:var(--text);font-weight:700;font-size:.88rem;padding:12px 18px;cursor:pointer;min-height:46px;font-family:inherit}
+  .btn:hover{border-color:var(--accent)}
+  footer{max-width:900px;margin:20px auto 0;color:var(--text-dim);font-size:.8rem;line-height:1.7;text-align:center}
+  footer a{color:var(--link)}
+  @media(max-width:560px){
+    body{padding:16px 10px 60px} .panel{padding:16px}
+    .cards{grid-template-columns:1fr} #sheetCv{height:170px}
+    h1{font-size:1.35rem}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Technical Drawing · 제도</div>
+  <h1>제도 마스터</h1>
+  <p class="subtitle">기계제도 · 기초제도 수업용 학습도구를 <b>배우는 순서대로</b> 모았습니다. 카드를 눌러 바로 실행하고, 끝낸 것은 <b>✓</b>로 표시해 두세요.</p>
+
+  <div class="rcnote hidden" id="rcNote"></div>
+
+  <div class="panel">
+    <div class="progwrap">
+      <div class="sheetbox"><canvas id="sheetCv"></canvas></div>
+      <div class="progtext">
+        <div class="bignum"><span id="doneN">0</span><small> / <span id="totalN">0</span> 완료</small></div>
+        <div class="bar"><i id="barFill"></i></div>
+        <div class="progmsg" id="progMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div id="list"></div>
+
+  <div class="foot">
+    <button class="btn" id="btnReset">진도 기록 지우기</button>
+    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center"
+       href="https://hongyul67-cpu.github.io/links/guide.html" target="_blank" rel="noopener">📖 결과수집 설정 가이드 (교사용)</a>
+  </div>
+</div>
+<footer>
+  기계제도(서울교과서) · 기초제도(씨마스) 수업 보조 도구 모음<br>
+  진도 표시는 이 기기에만 저장됩니다(localStorage). 제작: hong
+</footer>
+
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id);
+
+/* 선생님이 ?rc=... 로 열면 모든 도구 링크에 그대로 물려 준다 */
+const RC=new URLSearchParams(location.search).get("rc");
+const withRC=u=>RC?u+(u.includes("?")?"&":"?")+"rc="+encodeURIComponent(RC):u;
+
+const G="https://hongyul67-cpu.github.io/";
+const TOOLS=[
+ // 1단계 — 도면을 읽기 위한 기초
+ {s:1,e:"📐",n:"도면 양식·척도 마스터",u:"paper-scale-master",b:"기초제도 Ⅱ",
+  d:"A0을 직접 접어 A4까지 · 윤곽선/표제란/중심마크 · 척도(축척·현척·배척) 계산",rc:1},
+ {s:1,e:"🔍",n:"도면읽기 마스터",u:"domyeon-master",b:"기초 종합",
+  d:"선의 종류 · 치수 읽기 · 기계요소 약도 + 종합 자격시험",rc:1},
+ {s:1,e:"📏",n:"치수기입 마스터",u:"dimensioning-master",b:"기초제도 Ⅱ-4",
+  d:"치수 기입 요소 · 보조기호(φ R □ t C) · 기입 원칙",rc:1},
+
+ // 2단계 — 도법 (그리는 법)
+ {s:2,e:"✏️",n:"기본 도법 작도 트레이너",u:"basic-construction-master",b:"기초제도 Ⅲ-1",
+  d:"자와 컴퍼스 작도 8종 · 단계 되감기 · 컴퍼스 놓을 자리 직접 클릭",rc:1},
+ {s:2,e:"📐",n:"투상도 마스터",u:"tusang-master",b:"기초제도 Ⅲ-2",
+  d:"정투상 · 제3각법 — 투상법 종류 / 3면도 배치 / 입체→투상도",rc:1},
+ {s:2,e:"📐",n:"3면도 트레이너",u:"three-view-trainer",b:"기초제도 Ⅲ-2",
+  d:"3면도→입체 역추론 / 입체→투상도 / 제1각법·제3각법 구분",rc:1},
+ {s:2,e:"🧩",n:"블록 뷰 매칭",u:"block-view-matching",b:"기초제도 Ⅲ-2",
+  d:"정투상 5뷰 맞추기 게임 · 난이도 5단계",rc:1},
+ {s:2,e:"🧊",n:"단면도 익스플로러",u:"section-view-explorer",b:"기초제도 Ⅲ-3",
+  d:"단면도 원리를 3D로 직접 잘라 보며 체험 + 도전 3종",rc:1},
+ {s:2,e:"🪚",n:"단면도 규칙 마스터",u:"danmyeon-master",b:"기초제도 Ⅲ-3",
+  d:"해칭 45° · 절단선/화살표 · 길이방향으로 단면하지 않는 부품",rc:1},
+ {s:2,e:"🎭",n:"특수 투상도 비교기",u:"teuksu-tusang-master",b:"기초제도 Ⅲ-4",
+  d:"등각 · 사투상(카발리에/캐비닛) · 투시(1·2·3점) 동시 비교 + 소실점",rc:1},
+ {s:2,e:"📦",n:"전개도 마스터",u:"jeongaedo-master",b:"기초제도 Ⅲ-5",
+  d:"입체 8종을 슬라이더로 펼치고 접기 · 평행선법/방사선법/삼각형법",rc:1},
+
+ // 3단계 — 도면에 적히는 기호 · 실전
+ {s:3,e:"⟂",n:"기계제도 기호 마스터",u:"mechanical-drawing-symbols",b:"기계제도 Ⅰ",
+  d:"표면 거칠기 · 치수공차와 끼워맞춤 · 기하공차",rc:1},
+ {s:3,e:"🔩",n:"재료기호 마스터",u:"material-symbol-master",b:"기계제도 Ⅰ-9",
+  d:"SM45C · SS400 · GC250 해독 + 조각을 끼워 기호 조립 + 부품란 읽기",rc:1},
+ {s:3,e:"📝",n:"자동화설비기능사 실기 도면게임",u:"automation-practical-exam",b:"실기 대비",
+  d:"공개도면 문제게임 3모드(해독 · 3D매칭 · 치수찾기)",rc:1}
+];
+const STAGES=[
+ {s:1,t:"1단계 · 도면을 읽기 위한 기초",x:"용지와 척도, 선과 치수 — 여기부터 시작합니다"},
+ {s:2,t:"2단계 · 도법 (그리는 법)",x:"작도 → 투상 → 단면 → 전개, 교과서 순서 그대로"},
+ {s:3,t:"3단계 · 기호와 실전",x:"도면에 적히는 기호를 읽고 실제 도면에 적용합니다"}
+];
+
+const KEY="drawing_hub_done";
+let done=new Set();
+try{ done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]")); }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify([...done])); }catch(e){} };
+
+let filter=0;   // 0 = 전체
+el("filters").innerHTML=
+  '<button class="fbtn" type="button" data-s="0" aria-pressed="true">전체 '+TOOLS.length+'개</button>'+
+  STAGES.map(g=>'<button class="fbtn" type="button" data-s="'+g.s+'" aria-pressed="false">'+
+    g.t.split(" · ")[1]+' '+TOOLS.filter(t=>t.s===g.s).length+'개</button>').join("");
+el("filters").addEventListener("click",e=>{
+  const b=e.target.closest(".fbtn"); if(!b) return;
+  filter=+b.dataset.s;
+  el("filters").querySelectorAll(".fbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  render();
+});
+
+function render(){
+  el("list").innerHTML=STAGES.filter(g=>!filter||g.s===filter).map(g=>{
+    const list=TOOLS.filter(t=>t.s===g.s);
+    return '<div class="stagehead"><h2>'+g.t+'</h2><span>'+g.x+'</span></div>'+
+      '<div class="cards">'+list.map(t=>{
+        const on=done.has(t.u);
+        return '<div class="card'+(on?" done":"")+'">'+
+          '<div class="top"><span class="emo">'+t.e+'</span><div>'+
+            '<div class="nm">'+t.n+'</div><span class="badge">'+t.b+'</span></div></div>'+
+          '<div class="desc">'+t.d+'</div>'+
+          '<div class="acts">'+
+            '<a class="open" href="'+withRC(G+t.u+"/")+'" target="_blank" rel="noopener">열기 →</a>'+
+            '<button class="chk" type="button" data-u="'+t.u+'" aria-pressed="'+on+'" '+
+              'title="완료 표시" aria-label="'+t.n+' 완료 표시">'+(on?"✓":"○")+'</button>'+
+          '</div></div>';
+      }).join("")+'</div>';
+  }).join("");
+  updateProgress();
+}
+el("list").addEventListener("click",e=>{
+  const b=e.target.closest(".chk"); if(!b) return;
+  const u=b.dataset.u;
+  done.has(u)?done.delete(u):done.add(u);
+  save(); render();
+});
+el("btnReset").onclick=()=>{
+  if(!done.size) return;
+  if(confirm("진도 표시를 모두 지울까요? (이 기기에서만 지워집니다)")){ done.clear(); save(); render(); }
+};
+
+/* ---- 진행 시각화: 도면 한 장이 완성되어 간다 ---- */
+function updateProgress(){
+  const n=TOOLS.filter(t=>done.has(t.u)).length, total=TOOLS.length;
+  el("doneN").textContent=n; el("totalN").textContent=total;
+  el("barFill").style.width=(n/total*100)+"%";
+  el("progMsg").innerHTML = n===0
+    ? "아직 빈 용지입니다. 도구를 하나씩 끝낼 때마다 <b>도면이 한 줄씩 그려집니다.</b>"
+    : n<total
+      ? "잘하고 있습니다. <b>"+(total-n)+"개</b> 남았습니다."
+      : "🎉 <b>도면 완성!</b> 제도 도구를 모두 끝냈습니다.";
+  drawSheet(n/total);
+}
+function drawSheet(p){
+  const cv=el("sheetCv"), dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth||420, h=parseFloat(getComputedStyle(cv).height)||200;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+
+  const pad=14, sw=w-pad*2, sh=h-pad*2;
+  const x0=pad, y0=pad;
+  g.fillStyle="#ffffff"; g.fillRect(x0,y0,sw,sh);
+  g.strokeStyle="#c8bfa6"; g.lineWidth=1; g.strokeRect(x0,y0,sw,sh);
+
+  const ink="#1c3247", thin="#8fb3cf";
+  const st=(k)=>p>=k;                       // 완료 비율에 따라 요소가 하나씩 나타난다
+  const L=20/297*sh, M=10/297*sh;
+  if(st(0.001)){ g.strokeStyle=ink; g.lineWidth=1.6;
+    g.strokeRect(x0+L,y0+M,sw-L-M,sh-2*M); }                      // 윤곽선
+  if(st(0.14)){ const tw=Math.min(sw*0.34,120), th=Math.min(sh*0.2,34);
+    const tx=x0+sw-M-tw, ty=y0+sh-M-th;
+    g.strokeStyle=ink; g.lineWidth=1.2; g.strokeRect(tx,ty,tw,th);
+    g.beginPath(); g.moveTo(tx,ty+th/2); g.lineTo(tx+tw,ty+th/2); g.stroke();
+    g.fillStyle="#7b8b99"; g.font="9px 'Malgun Gothic',sans-serif"; g.textAlign="center";
+    g.fillText("도명 / 도번",tx+tw/2,ty+th*0.34);
+    g.fillText("척도 1:1",tx+tw/2,ty+th*0.82); }                   // 표제란
+  const cx=x0+sw*0.34, cy=y0+sh*0.42, bw=sw*0.19, bh=sh*0.24;
+  if(st(0.28)){ g.strokeStyle=ink; g.lineWidth=1.8; g.strokeRect(cx-bw/2,cy-bh/2,bw,bh); } // 정면도
+  if(st(0.42)){ g.strokeStyle=ink; g.lineWidth=1.8;
+    g.strokeRect(cx-bw/2,cy+bh/2+sh*0.09,bw,bh*0.62); }            // 평면도
+  if(st(0.56)){ g.strokeStyle=ink; g.lineWidth=1.8;
+    g.strokeRect(cx+bw/2+sw*0.07,cy-bh/2,bw*0.62,bh); }            // 우측면도
+  if(st(0.68)){ g.save(); g.strokeStyle=thin; g.lineWidth=.9; g.setLineDash([7,3,2,3]);
+    g.beginPath(); g.moveTo(cx,cy-bh/2-8); g.lineTo(cx,cy+bh/2+sh*0.09+bh*0.62+6); g.stroke();
+    g.beginPath(); g.moveTo(cx-bw/2-8,cy); g.lineTo(cx+bw/2+sw*0.07+bw*0.62+6,cy); g.stroke();
+    g.restore(); }                                                  // 중심선
+  if(st(0.80)){ g.save(); g.strokeStyle="#c1622a"; g.lineWidth=1;
+    const dy=cy+bh/2+4;
+    g.beginPath(); g.moveTo(cx-bw/2,dy); g.lineTo(cx+bw/2,dy); g.stroke();
+    [[cx-bw/2,1],[cx+bw/2,-1]].forEach(([x,s])=>{ g.beginPath();
+      g.moveTo(x,dy); g.lineTo(x+5*s,dy-2.5); g.lineTo(x+5*s,dy+2.5); g.closePath(); g.fillStyle="#c1622a"; g.fill(); });
+    g.fillStyle="#c1622a"; g.font="700 9px 'Malgun Gothic',sans-serif"; g.textAlign="center";
+    g.fillText("40",cx,dy-5); g.restore(); }                        // 치수
+  if(st(0.92)){ g.save(); g.strokeStyle="#5b7286"; g.lineWidth=.7;
+    g.beginPath(); g.rect(cx-bw/2,cy-bh/2,bw,bh); g.clip();
+    for(let i=-bh;i<bw+bh;i+=6){ g.beginPath(); g.moveTo(cx-bw/2+i,cy+bh/2); g.lineTo(cx-bw/2+i+bh,cy-bh/2); g.stroke(); }
+    g.restore(); }                                                  // 해칭
+  if(p>=1){ g.save(); g.translate(x0+sw*0.16,y0+sh*0.22); g.rotate(-0.22);
+    g.strokeStyle="#c0392b"; g.lineWidth=2.4; g.strokeRect(-32,-13,64,26);
+    g.fillStyle="#c0392b"; g.font="800 14px 'Malgun Gothic',sans-serif";
+    g.textAlign="center"; g.textBaseline="middle"; g.fillText("검 도",0,1); g.restore(); }
+}
+window.addEventListener("resize",()=>drawSheet(TOOLS.filter(t=>done.has(t.u)).length/TOOLS.length));
+
+if(RC){
+  el("rcNote").classList.remove("hidden");
+  el("rcNote").innerHTML="✅ <b>결과 제출이 켜진 링크</b>입니다. 여기서 도구를 열면 "+
+    "제출 주소가 <b>자동으로 따라갑니다</b> — 학생에게 이 주소 하나만 주면 됩니다.";
+}
+render();
+})();
+</script>
+</body>
+</html>
