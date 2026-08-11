@@ -38,6 +38,15 @@
   .rcnote b{color:var(--correct)}
   .hidden{display:none !important}
 
+  .classrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .clsbtn{background:transparent;border:1px solid rgba(255,180,84,.55);color:var(--accent);
+          border-radius:24px;padding:11px 18px;font-size:.88rem;font-weight:800;cursor:pointer;
+          min-height:46px;font-family:inherit}
+  .clsbtn:hover{background:rgba(255,180,84,.14)}
+  .clsbtn[aria-pressed="true"]{background:var(--accent);color:#1a1306;border-color:var(--accent)}
+  .clshint{font-size:.84rem;color:var(--text-dim);line-height:1.6}
+  .clshint b{color:var(--accent)}
+
   .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
   .fbtn{background:transparent;border:1px solid rgba(234,244,255,.22);color:var(--text-dim);
         padding:10px 14px;border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit}
@@ -100,6 +109,11 @@
     </div>
   </div>
 
+  <div class="classrow">
+    <button class="clsbtn" id="btnClass" type="button" aria-pressed="false">🎓 수업모드로 열기</button>
+    <span class="clshint" id="clsHint"></span>
+  </div>
+
   <div class="filters" id="filters"></div>
   <div id="list"></div>
 
@@ -121,7 +135,17 @@ const el=id=>document.getElementById(id);
 
 /* 선생님이 ?rc=... 로 열면 모든 도구 링크에 그대로 물려 준다 */
 const RC=new URLSearchParams(location.search).get("rc");
-const withRC=u=>RC?u+(u.includes("?")?"&":"?")+"rc="+encodeURIComponent(RC):u;
+/* 수업모드 스위치 — 켜면 도구가 처음부터 큰 화면(수업모드)으로 열린다 */
+const CKEY="drawing_hub_classmode";
+let classOn=false;
+try{ classOn=localStorage.getItem(CKEY)==="1"; }catch(e){}
+if(new URLSearchParams(location.search).get("class")==="1") classOn=true;
+function withRC(u){
+  const q=[];
+  if(RC) q.push("rc="+encodeURIComponent(RC));
+  if(classOn) q.push("class=1");
+  return q.length ? u+(u.includes("?")?"&":"?")+q.join("&") : u;
+}
 
 const G="https://hongyul67-cpu.github.io/";
 const TOOLS=[
@@ -171,6 +195,19 @@ const KEY="drawing_hub_done";
 let done=new Set();
 try{ done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]")); }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify([...done])); }catch(e){} };
+
+function renderClassBtn(){
+  el("btnClass").setAttribute("aria-pressed",classOn);
+  el("btnClass").textContent = classOn ? "🎓 수업모드 켜짐" : "🎓 수업모드로 열기";
+  el("clsHint").innerHTML = classOn
+    ? "카드를 열면 <b>바로 큰 화면</b>으로 뜹니다. <b>← →</b> 나 프레젠터 리모컨으로 넘기세요."
+    : "교실 화면(TV·빔프로젝터)에 띄울 때 켜세요. 글씨가 커지고 리모컨으로 넘길 수 있습니다.";
+}
+el("btnClass").onclick=()=>{
+  classOn=!classOn;
+  try{ localStorage.setItem(CKEY, classOn?"1":"0"); }catch(e){}
+  renderClassBtn(); render();
+};
 
 let filter=0;   // 0 = 전체
 el("filters").innerHTML=
@@ -277,6 +314,7 @@ function drawSheet(p){
 }
 window.addEventListener("resize",()=>drawSheet(TOOLS.filter(t=>done.has(t.u)).length/TOOLS.length));
 
+renderClassBtn();
 if(RC){
   el("rcNote").classList.remove("hidden");
   el("rcNote").innerHTML="✅ <b>결과 제출이 켜진 링크</b>입니다. 여기서 도구를 열면 "+
