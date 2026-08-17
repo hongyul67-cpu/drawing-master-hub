@@ -114,6 +114,11 @@
     <span class="clshint" id="clsHint"></span>
   </div>
 
+  <div class="classrow">
+    <a class="clsbtn" id="btnBoard" href="board.html" style="text-decoration:none;display:inline-block">🖥️ 전자칠판 수업자료 열기</a>
+    <span class="clshint">앞에서 설명할 때 쓰는 슬라이드 12장 — 요점 → 발문 → 퀴즈 → 정답 순으로 한 장씩 엽니다.</span>
+  </div>
+
   <div class="filters" id="filters"></div>
   <div id="list"></div>
 
@@ -135,6 +140,9 @@ const el=id=>document.getElementById(id);
 
 /* 선생님이 ?rc=... 로 열면 모든 도구 링크에 그대로 물려 준다 */
 const RC=new URLSearchParams(location.search).get("rc");
+/* 전자칠판 수업자료에도 결과수집 링크를 그대로 물려 준다 */
+(function(){ if(!RC) return; var a=document.getElementById("btnBoard");
+  if(a) a.href="board.html?rc="+encodeURIComponent(RC); })();
 /* 수업모드 스위치 — 켜면 도구가 처음부터 큰 화면(수업모드)으로 열린다 */
 const CKEY="drawing_hub_classmode";
 let classOn=false;
