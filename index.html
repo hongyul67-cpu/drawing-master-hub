@@ -37,6 +37,14 @@
           padding:11px 14px;font-size:.87rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px}
   .rcnote b{color:var(--correct)}
   .hidden{display:none !important}
+  /* 수업 슬라이드(board.js)가 열려 있는 동안에는 본체를 가린다.
+     레이어가 화면을 덮고 있어 누를 수 없는데, 겹침 검사에는 겹친 것으로 잡힌다.
+     .bd-unit 에는 transition 이 걸려 있어 물려받은 visibility 가 늦게 적용되므로
+     자식까지 직접 지정하고 transition 을 끈다. */
+  body.bd-open .wrap,
+  body.bd-open footer,
+  body.bd-open .wrap *,
+  body.bd-open footer *{visibility:hidden;transition:none}
 
   .classrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
   .clsbtn{background:transparent;border:1px solid rgba(255,180,84,.55);color:var(--accent);
@@ -114,9 +122,13 @@
     <span class="clshint" id="clsHint"></span>
   </div>
 
+  <!-- 수업 슬라이드(전자칠판) — 예전 board.html 이 여기로 들어왔습니다 -->
   <div class="classrow">
-    <a class="clsbtn" id="btnBoard" href="board.html" style="text-decoration:none;display:inline-block">🖥️ 전자칠판 수업자료 열기</a>
+    <button class="clsbtn" id="btnBoard" type="button" aria-pressed="false" aria-controls="boardPanel">🖥️ 전자칠판 수업자료 열기</button>
     <span class="clshint">앞에서 설명할 때 쓰는 슬라이드 12장 — 요점 → 발문 → 퀴즈 → 정답 순으로 한 장씩 엽니다.</span>
+  </div>
+  <div class="panel hidden" id="boardPanel">
+    <div id="boardHome"></div>
   </div>
 
   <div class="filters" id="filters"></div>
@@ -133,6 +145,9 @@
   진도 표시는 이 기기에만 저장됩니다(localStorage). 제작: hong
 </footer>
 
+<!-- 수업 슬라이드 원고(lesson.js) + 공용 슬라이드 화면(board.js) -->
+<script src="lesson.js"></script>
+<script src="board.js"></script>
 <script>
 (function(){
 "use strict";
@@ -140,9 +155,23 @@ const el=id=>document.getElementById(id);
 
 /* 선생님이 ?rc=... 로 열면 모든 도구 링크에 그대로 물려 준다 */
 const RC=new URLSearchParams(location.search).get("rc");
-/* 전자칠판 수업자료에도 결과수집 링크를 그대로 물려 준다 */
-(function(){ if(!RC) return; var a=document.getElementById("btnBoard");
-  if(a) a.href="board.html?rc="+encodeURIComponent(RC); })();
+/* 수업 슬라이드 — 예전 board.html 을 이 안으로 들여왔다.
+   원고는 lesson.js, 화면은 board.js(모든 도구 공용)가 담당한다.
+   슬라이드에서 학생용 도구로 넘어갈 때 ?rc= 는 board.js 가 알아서 붙인다. */
+let boardReady=false;
+el("btnBoard").onclick=()=>{
+  const p=el("boardPanel"), open=p.classList.contains("hidden");
+  p.classList.toggle("hidden",!open);
+  el("btnBoard").setAttribute("aria-pressed",open);
+  el("btnBoard").textContent = open ? "🖥️ 수업자료 닫기" : "🖥️ 전자칠판 수업자료 열기";
+  if(!open) return;
+  if(!boardReady){
+    if(!window.Board){ el("boardHome").innerHTML='<p class="clshint">수업자료를 불러오지 못했습니다.</p>'; return; }
+    Board.home(el("boardHome"),{hint:'슬라이드마다 마지막에 <b>그 주제의 학생용 도구</b>로 넘어가는 버튼이 있습니다 — 설명 → 바로 실습으로 이어 주세요.<br>결과수집 링크(<code>?rc=…</code>)로 열었다면 도구로 넘어갈 때도 그대로 따라갑니다.'});
+    boardReady=true;
+  }
+  p.scrollIntoView({behavior:"smooth",block:"nearest"});
+};
 /* 수업모드 스위치 — 켜면 도구가 처음부터 큰 화면(수업모드)으로 열린다 */
 const CKEY="drawing_hub_classmode";
 let classOn=false;

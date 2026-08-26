@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════
    제도 전자칠판 수업자료 — 슬라이드 원고
-   board.html 에서 window.LESSON / window.UNITS 로 읽는다.
+   index.html 이 board.js 로 띄운다. window.LESSON / window.UNITS 로 읽힌다.
 
    슬라이드 한 장 =
      u    단원 이름(상단 표시)
@@ -424,7 +424,7 @@ var LESSON = [
 }
 ];
 
-/* 단원 묶음 — board.html 의 단원 버튼이 된다 */
+/* 단원 묶음 — 수업자료 화면의 단원 버튼이 된다 */
 var UNITS = (function(){
   var order = [], map = {};
   LESSON.forEach(function(s, i){
@@ -434,6 +434,6 @@ var UNITS = (function(){
   return order;
 })();
 
-/* board.html 에서 window.LESSON / window.UNITS 로 읽는다 */
+/* board.js 가 window.LESSON / window.UNITS 로 읽는다 */
 window.LESSON = LESSON;
 window.UNITS  = UNITS;
